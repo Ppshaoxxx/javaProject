@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: async-flow-db
+    restart: on-failure
+    command:
+      - --default_authentication_plugin=mysql_native_password
+    environment:
+      - MYSQL_ROOT_PASSWORD=root@2023
+      - MYSQL_DATABASE=asyncflow
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./deploy/sql:/docker-entrypoint-initdb.d

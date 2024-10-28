@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+namespace: 命名空间，用于标识每一个Mapper XML文件中的语句，预防在不同的Mapper XML文件中存在相同的语句ID
+-->
+<mapper namespace="com.zdf.flowsvr.dao.AsyncFlowTaskDao">
+    <!--
+        resultType: 也称为自动映射，只有在表的列名与POJO类的属性完全一致时使用，会比较方便，全类名
+    -->
+
+    <resultMap id="getTaskList" type="com.zdf.flowsvr.data.AsyncFlowTask">
+        <result column="id" jdbcType="BIGINT" property="id" />
+        <result column="user_id" jdbcType="VARCHAR" property="user_id"/>
+        <result column="task_id" jdbcType="VARCHAR" property="task_id"/>
+        <result column="task_type" jdbcType="VARCHAR" property="task_type"/>
+        <result column="task_stage" jdbcType="VARCHAR" property="task_stage"/>
+        <result column="status" jdbcType="INTEGER" property="status"/>
+        <result column="crt_retry_num" jdbcType="INTEGER" property="crt_retry_num"/>
+        <result column="max_retry_num" jdbcType="INTEGER" property="max_retry_num"/>
+        <result column="priority" jdbcType="INTEGER" property="priority"/>
+        <result column="order_time" jdbcType="BIGINT" property="order_time"/>
+        <result column="max_retry_interval" jdbcType="INTEGER" property="max_retry_interval"/>
+        <result column="schedule_log" jdbcType="VARCHAR" property="schedule_log"/>
+        <result column="task_context" jdbcType="VARCHAR" property="task_context"/>
+        <result column="create_time" jdbcType="BIGINT" property="create_time"/>
+        <result column="modify_time" jdbcType="BIGINT" property="modify_time"/>
+    </resultMap>
+    <update id="increaseCrtRetryNum">
+        update
+            ${tableName}
+        set
+            crt_retry_num = crt_retry_num + 1
+        where
+            task_id = #{task_id}
+    </update>
+    <update id="updateTask"
+            parameterType="com.zdf.flowsvr.data.AsyncFlowTask">
+        update
+        ${tableName}
+        set
+        user_id = #{asyncFlowTask.user_id},
+        task_stage = #{asyncFlowTask.task_stage},
+        status = #{asyncFlowTask.status},
+        crt_retry_num = #{asyncFlowTask.crt_retry_num},
+        max_retry_num = #{asyncFlowTask.max_retry_num},
+        max_retry_interval = #{asyncFlowTask.max_retry_interval},
+        schedule_log = #{asyncFlowTask.schedule_log},
+        task_context = #{asyncFlowTask.task_context},
+        create_time = #{asyncFlowTask.create_time},
+        modify_time = #{asyncFlowTask.modify_time},
+        order_time = #{asyncFlowTask.order_time}
+        where
+        task_id = #{asyncFlowTask.task_id}
+        and
+        status not in
+        <foreach collection="statuss" item="s" index="index"
+                 open="(" close=")" separator=",">
+            #{s}
+        </foreach>
+    </update>
+    <update id="setStatus">
+        update
+            ${tableName}
+        set
+            status = #{status}
+        where
+            task_id = #{task_id}
+    </update>
+    <update id="updateTask_contextByTask_id">
+        update
+            ${tableName}
+        set
+            task_context = #{task_context}
+        where
+            task_id = #{task_id}
+    </update>
+    <update id="modifyTimeoutPending">
+        update
+            ${tableName}
+        set
+            status = #{newStatus}
+        where
+            status = #{oldStatus}
+          and
+            modify_time + #{maxProcessingTime} &lt; #{currentTime};
+    </update>
+    <update id="updateStatusBatch">
+        update ${tableName} set status = #{status}, modify_time = #{modifyTime}
+        where id in
+        <foreach collection="ids" item="s" index="index"
+                 open="(" close=")" separator=",">
+            #{s}
+        </foreach>
+    </update>
+
+    <select id="getTaskList"
+            resultMap="getTaskList">
+        SELECT  *
+        FROM ${tableName}
+        where
+            task_type = #{taskType} and status = #{status}
+        order by order_time
+        limit #{limit}
+    </select>
+    <select id="getAliveTaskList" resultType="com.zdf.flowsvr.data.AsyncFlowTask">
+        select * from ${tableName}
+        where
+        status in
+        <foreach collection="statusList" item="status" index="index"
+                 open="(" close=")" separator=",">
+            #{status}
+        </foreach>
+    </select>
+    <select id="getTaskCountByStatus" resultType="java.lang.Integer"
+            parameterType="java.lang.Integer">
+        select count(*) from ${tableName}
+        where
+            status = #{status}
+    </select>
+    <select id="getLongTimeProcessing" resultType="com.zdf.flowsvr.data.AsyncFlowTask">
+        select * from ${tableName}
+        where
+            status = #{status}
+          and
+            modify_time &lt; #{currentTime} - #{maxProcessTime}
+    </select>
+    <select id="find" resultMap="getTaskList">
+        select * from ${tableName}
+        where
+            task_id = #{task_id}
+    </select>
+    <select id="getTaskCount" resultType="java.lang.Integer">
+        select count(*) from ${tableName}
+        where
+        status in
+        <foreach collection="statusList" item="status" index="index"
+                 open="(" close=")" separator=",">
+            #{status}
+        </foreach>
+    </select>
+    <select id="getTaskByUser_idAndStatus" resultType="com.zdf.flowsvr.data.AsyncFlowTask">
+        select * from ${tableName}
+        where
+        user_id = #{user_id}
+        and
+        status in
+        <foreach collection="statusList" item="status" index="index"
+                 open="(" close=")" separator=",">
+            #{status}
+        </foreach>
+    </select>
+
+
+    <insert id="create"
+            useGeneratedKeys="true" keyProperty="asyncFlowTask.id">
+        INSERT INTO ${tableName} (`user_id`,
+                                  `task_id`,
+                                  `task_type`,
+                                  `task_stage`,
+                                  `status`,
+                                  `crt_retry_num`,
+                                  `max_retry_num`,
+                                  `order_time`,
+                                  `priority`,
+                                  `max_retry_interval`,
+                                  `schedule_log`,
+                                  `task_context`,
+                                  `create_time`,
+                                  `modify_time`)
+        VALUES (#{asyncFlowTask.user_id},
+                #{asyncFlowTask.task_id},
+                #{asyncFlowTask.task_type},
+                #{asyncFlowTask.task_stage},
+                #{asyncFlowTask.status},
+                #{asyncFlowTask.crt_retry_num},
+                #{asyncFlowTask.max_retry_num},
+                #{asyncFlowTask.order_time},
+                #{asyncFlowTask.priority},
+                #{asyncFlowTask.max_retry_interval},
+                #{asyncFlowTask.schedule_log},
+                #{asyncFlowTask.task_context},
+                #{asyncFlowTask.create_time},
+                #{asyncFlowTask.modify_time})
+    </insert>
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        <selectKey keyProperty="count" resultType="int" order="BEFORE">
+            select count(*) from ${tableName} where id = #{id}
+        </selectKey>
+        <if test="count > 0">
+            update ${tableName}
+            set
+            user_id = #{asyncFlowTask.user_id},
+            task_stage = #{asyncFlowTask.task_stage},
+            status = #{asyncFlowTask.status},
+            crt_retry_num = #{asyncFlowTask.crt_retry_num},
+            max_retry_num = #{asyncFlowTask.max_retry_num},
+            priority = {asyncFlowTask.priority},
+            order_time = #{asyncFlowTask.order_time},
+            max_retry_interval = #{asyncFlowTask.max_retry_interval},
+            schedule_log = #{asyncFlowTask.schedule_log},
+            task_context = #{asyncFlowTask.task_context},
+            modify_time = #{asyncFlowTask.modify_time}
+            where id = #{asyncFlowTask.id}
+        </if>
+        <if test="count==0">
+            insert into ${tableName}
+            VALUES (#{asyncFlowTask.user_id}, #{asyncFlowTask.task_id}, #{asyncFlowTask.task_type}, #{asyncFlowTask.task_stage},
+            #{asyncFlowTask.status}, #{asyncFlowTask.crt_retry_num}, #{asyncFlowTask.priority}, #{asyncFlowTask.order_time},
+            #{asyncFlowTask.max_retry_num}, #{asyncFlowTask.max_retry_interval},
+            #{asyncFlowTask.schedule_log}, #{asyncFlowTask.task_context}, #{asyncFlowTask.create_time}, #{masyncFlowTask.odify_time})
+        </if>
+
+    </insert>
+
+</mapper>
