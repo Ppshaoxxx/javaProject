@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.originit.async.deal.mapper.TaskMapper">
+
+
+    <select id="selectTimeoutTasks" resultType="org.originit.async.deal.pojo.Task">
+        SELECT * from ${tableName}
+        where status = #{executingStatus}
+          and modify_time &lt; #{minModifyTime}
+        <if test="limitCount != null and limitCount != -1">
+            limit #{limitCount}
+        </if>
+    </select>
+
+    <update id="batchUpdateRetryTask">
+        <foreach collection="timeoutTasks" item="task">
+            <choose>
+                <when test="task.status == failStatus">
+                    UPDATE ${tableName}
+                    set status=#{task.status},modify_time=#{task.modifyTime}
+                    where id=#{task.id} and task_stage=#{task.taskStage} and status=#{executingStatus};
+                </when>
+                <otherwise>
+                    UPDATE ${tableName}
+                    set status=#{task.status},modify_time=#{task.modifyTime},order_time=#{task.orderTime},
+                    crt_retry_num=#{task.crtRetryNum}
+                    where id=#{task.id} and task_stage=#{task.taskStage} and status=#{executingStatus};
+                </otherwise>
+            </choose>
+        </foreach>
+    </update>
+
+    <select id="selectCount" resultType="int">
+        SELECT COUNT(*) from ${tableName}
+    </select>
+
+    <update id="createNewTable">
+        CREATE TABLE IF NOT EXISTS `${newTableName}` (
+            `id` int(11) NOT NULL AUTO_INCREMENT,
+            `user_id` varchar(256) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+            `task_id` varchar(256) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+            `task_type` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+            `task_stage` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+            `status` tinyint(3) unsigned NOT NULL DEFAULT '0',
+            `priority` int(11) NOT NULL DEFAULT '0' COMMENT '优先级',
+            `crt_retry_num` int(11) NOT NULL DEFAULT '0' COMMENT '已经重试几次了',
+            `max_retry_num` int(11) NOT NULL DEFAULT '0' COMMENT '最大能重试几次',
+            `max_retry_interval` int(11) NOT NULL DEFAULT '0' COMMENT '最大重试间隔',
+            `schedule_log` varchar(4096) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '调度信息记录',
+            `task_context` varchar(8192) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '任务上下文，用户自定义',
+            `order_time` bigint NOT NULL DEFAULT '0' COMMENT '调度时间，越小调度越优先',
+            `create_time` bigint ,
+            `modify_time` bigint,
+            PRIMARY KEY (`id`),
+            UNIQUE KEY `idx_task_id` (`task_id`),
+            KEY `idx_user_id` (`user_id`),
+            KEY `idx_status` (`status`),
+            KEY `idx_tasktype_status_modify_time` (`status`,`order_time`)
+            ) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    </update>
+
+    <select id="selectCountByStatus" resultType="int">
+        SELECT COUNT(*) FROM ${tableName}
+        where status=#{status};
+    </select>
+</mapper>

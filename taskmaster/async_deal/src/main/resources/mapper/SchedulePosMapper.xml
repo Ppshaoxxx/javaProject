@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.originit.async.deal.mapper.SchedulePosMapper">
+
+
+    <select id="selectBeginTableByType" resultType="int">
+        SELECT schedule_begin_pos from t_schedule_pos where task_type=#{taskType}
+    </select>
+
+    <select id="selectEndTablePos" resultType="int">
+        SELECT schedule_end_pos from t_schedule_pos where task_type=#{taskType}
+    </select>
+
+    <update id="updateEndPos">
+        UPDATE t_schedule_pos set schedule_end_pos=#{newEndPos} where task_type=#{taskType}
+    </update>
+
+    <update id="updateBeginPos">
+        UPDATE t_schedule_pos set schedule_begin_pos=#{newBeginPos} where task_type=#{taskType}
+    </update>
+</mapper>

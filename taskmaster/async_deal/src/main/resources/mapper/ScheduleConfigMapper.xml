@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.originit.async.deal.mapper.ScheduleConfigMapper">
+
+
+    <select id="selectMaxLimitByTaskType" resultType="int">
+        SELECT max_processing_time from t_schedule_cfg where task_type=#{taskType}
+    </select>
+
+    <select id="selectAllTaskTypes" resultType="string">
+        SELECT task_type from t_schedule_cfg order by task_type
+    </select>
+</mapper>

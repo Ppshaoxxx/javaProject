@@ -1,0 +1,28 @@
+mybatis:
+  mapper-locations: classpath:mapper/*xml
+  type-aliases-package: org.originit.async.deal.pojo
+  configuration:
+    map-underscore-to-camel-case: true
+spring:
+  task:
+    execution:
+      pool:
+        core-size: 11
+        max-size: 100
+        keep-alive: 60s
+        queue-capacity: 1000
+        allow-core-thread-timeout: true
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/asyncflow?serverTimezone=GMT%2B8&characterEncoding=utf8&useSSL=false&allowMultiQueries=true
+    username: root
+    password: root
+
+# 项目自定义配置
+deal:
+  timeout-tasks:
+    # 超时任务最多一次处理100个任务
+    limit-count: 1000
+  tasks:
+    # 每个表的最大限制
+    table-limit: 50
