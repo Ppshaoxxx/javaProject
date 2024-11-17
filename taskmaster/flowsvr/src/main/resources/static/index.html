@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>任务管理接口前端页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7fa;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .section h2 {
+            margin: 0 0 15px 0;
+            font-size: 18px;
+            color: #007bff;
+        }
+        .input-group {
+            margin: 10px 0;
+        }
+        label {
+            display: inline-block;
+            width: 120px;
+            font-weight: bold;
+        }
+        input[type="text"],
+        textarea {
+            padding: 8px;
+            width: calc(100% - 130px);
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        /* 增加 textarea 的高度和宽度，确保显示全部数据 */
+        #create_task_data {
+            width: 700px; /* 增加宽度 */
+            height: 400px; /* 增加高度 */
+            resize: none;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result-box {
+            width: 400px;
+            margin-left: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            white-space: pre-wrap;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>任务管理接口</h1>
+
+    <!-- 创建任务 -->
+    <div class="section">
+        <div>
+            <h2>创建任务</h2>
+            <div class="input-group">
+                <label>任务数据 (JSON):</label>
+                <textarea id="create_task_data">{
+    "taskData": {
+        "user_id": "yy2",
+        "task_type": "Lark",
+        "task_stage": "sendmsg",
+        "schedule_log": "",
+        "task_context": "{\"ReqBody\":{\"Msg\":\"nice to meet u\",\"FromAddr\":\"fish\",\"ToAddr\":\"cat\"},\"UserId\":\"\"}"
+    }
+}</textarea>
+            </div>
+            <button onclick="createTask()">创建任务</button>
+        </div>
+        <div class="result-box" id="create_task_result">返回结果将显示在这里</div>
+    </div>
+
+    <!-- 获取任务 -->
+    <div class="section">
+        <div>
+            <h2>获取任务</h2>
+            <div class="input-group">
+                <label>任务ID:</label>
+                <input type="text" id="get_task_id" placeholder="请输入任务ID">
+            </div>
+            <button onclick="getTask()">获取任务</button>
+        </div>
+        <div class="result-box" id="get_task_result">返回结果将显示在这里</div>
+    </div>
+
+    <!-- 获取任务列表 -->
+    <div class="section">
+        <div>
+            <h2>获取任务列表</h2>
+            <div class="input-group">
+                <label>任务类型:</label>
+                <input type="text" id="task_list_type" placeholder="请输入任务类型">
+            </div>
+            <div class="input-group">
+                <label>状态:</label>
+                <input type="text" id="task_list_status" placeholder="请输入状态">
+            </div>
+            <div class="input-group">
+                <label>限制条数:</label>
+                <input type="text" id="task_list_limit" placeholder="请输入限制条数">
+            </div>
+            <button onclick="getTaskList()">获取任务列表</button>
+        </div>
+        <div class="result-box" id="task_list_result">返回结果将显示在这里</div>
+    </div>
+
+    <!-- 占据任务 -->
+    <div class="section">
+        <div>
+            <h2>占据任务</h2>
+            <div class="input-group">
+                <label>任务类型:</label>
+                <input type="text" id="hold_task_type" placeholder="请输入任务类型">
+            </div>
+            <div class="input-group">
+                <label>状态:</label>
+                <input type="text" id="hold_task_status" placeholder="请输入状态">
+            </div>
+            <div class="input-group">
+                <label>限制条数:</label>
+                <input type="text" id="hold_task_limit" placeholder="请输入限制条数">
+            </div>
+            <button onclick="holdTask()">占据任务</button>
+        </div>
+        <div class="result-box" id="hold_task_result">返回结果将显示在这里</div>
+    </div>
+
+    <!-- 更新任务 -->
+    <div class="section">
+        <div>
+            <h2>更新任务</h2>
+            <div class="input-group">
+                <label>任务ID:</label>
+                <input type="text" id="set_task_id" placeholder="请输入任务ID">
+            </div>
+            <button onclick="addTask()">更新任务</button>
+        </div>
+        <div class="result-box" id="set_task_result">返回结果将显示在这里</div>
+    </div>
+
+    <!-- 获取用户任务列表 -->
+    <div class="section">
+        <div>
+            <h2>获取用户任务列表</h2>
+            <div class="input-group">
+                <label>用户ID:</label>
+                <input type="text" id="user_task_user_id" placeholder="请输入用户ID">
+            </div>
+            <div class="input-group">
+                <label>状态列表:</label>
+                <input type="text" id="user_task_status_list" placeholder="请输入状态列表 (逗号分隔)">
+            </div>
+            <button onclick="getUserTaskList()">获取用户任务列表</button>
+        </div>
+        <div class="result-box" id="user_task_list_result">返回结果将显示在这里</div>
+    </div>
+
+    <!-- 获取任务类型配置列表 -->
+    <div class="section">
+        <div>
+            <h2>获取任务类型配置列表</h2>
+            <button onclick="getTaskTypeCfgList()">获取任务类型配置列表</button>
+        </div>
+        <div class="result-box" id="task_cfg_list_result">返回结果将显示在这里</div>
+    </div>
+
+    <!-- 新增任务配置 -->
+    <div class="section">
+        <div>
+            <h2>新增任务配置</h2>
+            <div class="input-group">
+                <label>任务类型:</label>
+                <input type="text" id="task_cfg_type" placeholder="请输入任务类型">
+            </div>
+            <button onclick="setTaskConfiguration()">新增任务配置</button>
+        </div>
+        <div class="result-box" id="task_cfg_result">返回结果将显示在这里</div>
+    </div>
+</div>
+
+<script>
+    const apiUrl = 'http://127.0.0.1:8080';
+
+    function displayResult(elementId, data) {
+        document.getElementById(elementId).innerText = JSON.stringify(data, null, 2);
+    }
+
+    async function createTask() {
+        const taskData = JSON.parse(document.getElementById('create_task_data').value);
+        try {
+            const response = await fetch(`${apiUrl}/task/create_task`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(taskData)
+            });
+            const data = await response.json();
+            displayResult('create_task_result', data);
+        } catch (error) {
+            console.error('错误:', error);
+        }
+    }
+
+
+
+
+    async function getTask() {
+        const taskId = document.getElementById('get_task_id').value;
+        try {
+            const response = await fetch(`${apiUrl}/task/get_task?task_id=${taskId}`, { method: 'GET' });
+            const data = await response.json();
+            displayResult('get_task_result', data);
+        } catch (error) {
+            console.error('错误:', error);
+        }
+    }
+
+    async function getTaskList() {
+        const taskType = document.getElementById('task_list_type').value;
+        const status = document.getElementById('task_list_status').value;
+        const limit = document.getElementById('task_list_limit').value;
+        try {
+            const response = await fetch(`${apiUrl}/task/task_list?task_type=${taskType}&status=${status}&limit=${limit}`, { method: 'GET' });
+            const data = await response.json();
+            displayResult('task_list_result', data);
+        } catch (error) {
+            console.error('错误:', error);
+        }
+    }
+
+    async function holdTask() {
+        const taskType = document.getElementById('hold_task_type').value;
+        const status = document.getElementById('hold_task_status').value;
+        const limit = document.getElementById('hold_task_limit').value;
+        try {
+            const response = await fetch(`${apiUrl}/task/hold_task?task_type=${taskType}&status=${status}&limit=${limit}`, { method: 'GET' });
+            const data = await response.json();
+            displayResult('hold_task_result', data);
+        } catch (error) {
+            console.error('错误:', error);
+        }
+    }
+
+    async function addTask() {
+        const taskId = document.getElementById('set_task_id').value;
+        const taskSetRequest = { task_id: taskId };
+        try {
+            const response = await fetch(`${apiUrl}/task/set_task`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(taskSetRequest)
+            });
+            const data = await response.json();
+            displayResult('set_task_result', data);
+        } catch (error) {
+            console.error('错误:', error);
+        }
+    }
+
+    async function getUserTaskList() {
+        const userId = document.getElementById('user_task_user_id').value;
+        const statusList = document.getElementById('user_task_status_list').value;
+        try {
+            const response = await fetch(`${apiUrl}/task/user_task_list?user_id=${userId}&status_list=${statusList}`, { method: 'GET' });
+            const data = await response.json();
+            displayResult('user_task_list_result', data);
+        } catch (error) {
+            console.error('错误:', error);
+        }
+    }
+
+    async function getTaskTypeCfgList() {
+        try {
+            const response = await fetch(`${apiUrl}/task_schedule_cfg/list`, { method: 'GET' });
+            const data = await response.json();
+            displayResult('task_cfg_list_result', data);
+        } catch (error) {
+            console.error('错误:', error);
+        }
+    }
+
+    async function setTaskConfiguration() {
+        const taskType = document.getElementById('task_cfg_type').value;
+        const configData = { task_type: taskType };
+        try {
+            const response = await fetch(`${apiUrl}/task_schedule_cfg/task_configuration`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(configData)
+            });
+            const data = await response.json();
+            displayResult('task_cfg_result', data);
+        } catch (error) {
+            console.error('错误:', error);
+        }
+    }
+</script>
+</body>
+</html>

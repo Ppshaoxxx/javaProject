@@ -7,8 +7,8 @@ package com.zdf.flowsvr.enums;
 public enum TaskStatus {
     PENDING(0x01),
     EXECUTING(0x02),
-    SUCCESS(0x04),
-    FAIL(0x08);
+    SUCCESS(0x03),
+    FAIL(0x04);
 
     private TaskStatus(int status) {
         this.status = status;

@@ -1,5 +1,7 @@
 package com.zdf.worker.boot;
 
+
+import com.zdf.worker.kafkaConsumer.KafkaTaskFetcherManual;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.zdf.worker.Client.TaskFlower;
@@ -12,10 +14,10 @@ import com.zdf.worker.data.AsyncTaskBase;
 import com.zdf.worker.data.AsyncTaskReturn;
 import com.zdf.worker.data.AsyncTaskSetStage;
 import com.zdf.worker.data.ScheduleConfig;
-import com.zdf.worker.enums.TaskStatus;
-import com.zdf.worker.task.Lark;
+import com.zdf.worker.task.lark.Lark;
 import com.zdf.worker.task.TaskBuilder;
 import com.zdf.worker.task.TaskRet;
+import org.springframework.stereotype.Component;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -25,7 +27,9 @@ import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Component
 public class AppLaunch implements Launch{
+    private static final String kafkaIp = "192.168.57.140:9093,192.168.57.140:9094,192.168.57.140:9095";
     final TaskFlower taskFlower;//用于发送请求
 
     public static String packageName; //要执行的类的包名
@@ -50,6 +54,8 @@ public class AppLaunch implements Launch{
     ScheduledExecutorService loadPool;
 
 
+    //kafka获取任务
+
     public AppLaunch() {
         this(0);
     }
@@ -58,6 +64,7 @@ public class AppLaunch implements Launch{
 
         loadPool = Executors.newScheduledThreadPool(1);
         taskFlower = new TaskFlowerImpl();
+        //这里写入你要拉取的类
         taskType = Lark.class;
         packageName = taskType.getPackage().getName();
         this.scheduleLimit = scheduleLimit;
@@ -96,6 +103,7 @@ public class AppLaunch implements Launch{
 //            threadPoolExecutor.scheduleAtFixedRate(this::execute, step * 3L, intervalTime + step, TimeUnit.MILLISECONDS);
 //        }
     }
+
 
     public void execute(Class<?> taskType) {
         List<AsyncTaskBase> asyncTaskBaseList = scheduleTask(taskType);
@@ -181,8 +189,17 @@ public class AppLaunch implements Launch{
             // 上锁
          //   if (redisLock.lock()) {
             // 调用http请求接口
-                taskList = taskFlower.getTaskList(taskType, TaskStatus.PENDING.getStatus(), scheduleCfgDic.get(taskType.getSimpleName()).getSchedule_limit());
-                if (taskList == null || taskList.size() == 0) {
+                //taskList = taskFlower.getTaskList(taskType, TaskStatus.PENDING.getStatus(), scheduleCfgDic.get(taskType.getSimpleName()).getSchedule_limit());
+            //改为从Kafka中拉取任务
+            String topic = taskType.getSimpleName(); // 例如：Lark
+            //拉取Kafka中的任务
+            taskList = fetchTasksFromKafka(topic);
+            System.out.println("拉取到的任务是"+taskList.toString());
+            if (taskList == null || taskList.isEmpty()) {
+                logger.warn("no task to deal from topic: " + topic);
+                return null;
+            }
+            if (taskList == null || taskList.size() == 0) {
                     logger.warn("no task to deal!");
                     return null;
                 }
@@ -215,6 +232,8 @@ public class AppLaunch implements Launch{
 
     @Override
     public int init() {
+
+
         loadCfg();
         if (scheduleLimit != 0) {
             logger.debug("init ScheduleLimit : %d", scheduleLimit);
@@ -252,5 +271,10 @@ public class AppLaunch implements Launch{
         public int getCode() {
             return code;
         }
+    }
+
+    private List<AsyncTaskReturn> fetchTasksFromKafka(String topic) {
+        KafkaTaskFetcherManual kafkaTaskFetcher = new KafkaTaskFetcherManual(kafkaIp, "manual-group");
+        return kafkaTaskFetcher.fetchTasks(topic);
     }
 }

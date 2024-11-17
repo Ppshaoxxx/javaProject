@@ -1,8 +1,10 @@
-package com.zdf.worker.task;
+package com.zdf.worker.task.lark;
 
 import com.alibaba.fastjson.JSON;
 import com.zdf.worker.data.AsyncTaskSetStage;
 import com.zdf.worker.data.NftTaskContext;
+import com.zdf.worker.task.AsyncExecutable;
+import com.zdf.worker.task.TaskRet;
 
 import java.lang.reflect.Method;
 

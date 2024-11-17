@@ -1,25 +1,139 @@
+# Spring Boot 配置
 server:
+  # Web 服务器的端口号
   port: 8080
+  # Web 服务器的绑定地址
   address: localhost
 
 spring:
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/asyncflow?serverTimezone=GMT%2B8&characterEncoding=utf8&useSSL=false
-    username: root
-    password: 123456
-    type: com.alibaba.druid.pool.DruidDataSource
-    druid:
+  redis:
+    host: 192.168.57.140
+    port: 6378
+    password: # 如果无密码则留空
+
+  shardingsphere:
+    datasource:
+      druid:
         min-idle: 1                                          # 最小连接数
         max-active: 8                                         # 最大连接数(默认8)
         max-wait: 1000                                       # 获取连接时的最大等待时间
         min-evictable-idle-time-millis: 300000               # 一个连接在池中最小生存的时间，单位是毫秒
         time-between-eviction-runs-millis: 60000             # 多久才进行一次检测需要关闭的空闲连接，单位是毫秒
 
+      names: master,slave1,slave2
+      # 主数据源
+      master:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://192.168.57.140:3307/asyncflow
+        username: root
+        password: 123456
+      # 从数据源
+      slave1:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://192.168.57.140:3308/asyncflow
+        username: root
+        password: 123456
+      slave2:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://192.168.57.140:3309/asyncflow
+        username: root
+        password: 123456
+    # 负载均衡规则
+    rules:
+      readwrite-splitting:
+        data-sources:
+          read-write-datasource:
+            static-strategy:
+              # 写库数据源名称
+              write-data-source-name: master
+              # 读库数据源列表，多个从数据源用逗号分隔
+              read-data-source-names:
+                - slave1
+                - slave2
+            # 负载均衡算法名称
+            load-balancer-name: round_robin
+        # 负载均衡算法配置
+        load-balancers:
+          round_robin:
+            # 负载均衡算法类型
+            type: ROUND_ROBIN
+            # 负载均衡算法属性配置
+    # props:
+#    props:
+#      sql-show: true #开启SQL显示，默认false,开启之后才会在控制台显示是操作哪个库
+
+    # JPA（Java Persistence API）配置
+#    jpa:
+#      hibernate:
+#        ddl-auto: update  # 自动更新表结构，可改为 validate, create, create-drop 等
+#      show-sql: true       # 是否显示 SQL 日志
+#      properties:
+#        hibernate:
+#          format_sql: true # 格式化 SQL，使日志更易读
+
+  kafka:
+    # Kafka集群的地址，多个地址用逗号分隔
+    bootstrap-servers: 192.168.57.140:9093,192.168.57.140:9094,192.168.57.140:9095
+
+    producer:
+      # 消息确认模式：0=不等待确认，1=等待leader确认，all=所有副本确认
+      acks: 1
+      # 发送失败时的重试次数，0表示不重试
+      retries: 0
+      # 批量发送时的批次大小（字节）
+      batch-size: 30720000 # 30MB
+      # 生产者的内存缓冲区大小（字节）
+      buffer-memory: 33554432 # 32MB
+      # Key的序列化器类
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # Value的序列化器类
+      # 传递对象
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+    consumer:
+      # 消费者所属的组ID
+      group-id: test-kafka
+      # 禁用自动提交offset，改为手动提交
+      enable-auto-commit: false
+      # 偏移量重置策略：
+      # earliest：从最早的记录开始消费
+      # latest：从最新的记录开始消费
+      auto-offset-reset: earliest
+      # Key的反序列化器类
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # Value的反序列化器类
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      # 每次poll()调用返回的最大消息条数
+      max-poll-records: 2
+      session:
+        # 消费者会话超时时间，超时未发送心跳将被认为失联（毫秒）
+        timeout:
+          ms: 300000 # 5分钟
+
+    listener:
+      # 如果指定的主题不存在，是否让应用启动失败，false表示不会报错
+      missing-topics-fatal: false
+      # 消费模式：single=单条消息，batch=批量消费
+      type: single
+      # 消费确认模式：
+      # manual_immediate：手动确认消息，立即提交offset
+      ack-mode: manual_immediate
+
+
+
+
+# MyBatis 配置
 mybatis:
+  # MyBatis 映射文件的位置（需要根据实际情况修改文件路径）
   mapper-locations: classpath:mappers/*.xml
+  # MyBatis 类型别名的包路径，便于在映射文件中使用别名代替全类名
   type-aliases-package: com.zdf.flowsvr.data
-  #开启驼峰命名
+  # MyBatis 配置项
   configuration:
+    # 开启驼峰命名转换（数据库字段和 Java 对象字段的命名风格转换）
     map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    # MyBatis SQL 日志实现，输出到控制台
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

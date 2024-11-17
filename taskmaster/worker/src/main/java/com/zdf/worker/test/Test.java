@@ -5,7 +5,7 @@ import com.zdf.worker.Client.TaskFlowerImpl;
 import com.zdf.worker.data.AsyncFlowClientData;
 import com.zdf.worker.data.AsyncTaskRequest;
 import com.zdf.worker.data.AsyncTaskReturn;
-import com.zdf.worker.task.Lark;
+import com.zdf.worker.task.lark.Lark;
 import com.zdf.worker.task.TaskBuilder;
 
 import java.util.List;
