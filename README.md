@@ -13,20 +13,20 @@
 ![image](https://github.com/user-attachments/assets/d48bad81-523d-4fd1-aa93-e63633c44421)
 
 各模块介绍：
-flowsvr（服务端）：创建任务、调度任务、任务配置、查询某个任务的状态、占据任务、拉取任务等等
-async_deal（治理模块）：主要是治理服务端的数据库数据，检查是否有表超过一定的阈值
-worker（执行端）（客户端）：可多机部署，不同worker可以处理同类任务，也可以处理不同类任务
+flowsvr（服务端）：创建任务、调度任务、任务配置、查询某个任务的状态、占据任务、拉取任务等等  
+async_deal（治理模块）：主要是治理服务端的数据库数据，检查是否有表超过一定的阈值  
+worker（执行端）（客户端）：可多机部署，不同worker可以处理同类任务，也可以处理不同类任务  
 
 ![image](https://github.com/user-attachments/assets/f0661c00-5d23-4f49-bbea-1fed80f536d1)
 
 
 
 如何使用？
-1、flowsvr（服务端）和async_deal（治理模块）部署在服务器上，开启子进程运行asyn_deal即可
-2、worker可以多机部署
-3、Kafka、MySQL在application.yml中配置，执行init.sql创建表结构
-4、在worker中的task文件夹中新建自己的任务类，写上你的任务的执行逻辑
-5、调用flowsvr中static中的html，打开前端页面或者用接口调用工具调用create_task接口，创建你的任务信息
-6、运行flowsvr、async_deal、worker，然后等待执行结果即可。
-（前端页面有设置重试时间，一次性拉取任务数量，最大重试次数等接口，可以根据需要配置参数）
+1、flowsvr（服务端）和async_deal（治理模块）部署在服务器上，开启子进程运行asyn_deal即可  
+2、worker可以多机部署  
+3、Kafka、MySQL在application.yml中配置，执行init.sql创建表结构  
+4、在worker中的task文件夹中新建自己的任务类，写上你的任务的执行逻辑  
+5、调用flowsvr中static中的html，打开前端页面或者用接口调用工具调用create_task接口，创建你的任务信息  
+6、运行flowsvr、async_deal、worker，然后等待执行结果即可。  
+（前端页面有设置重试时间，一次性拉取任务数量，最大重试次数等接口，可以根据需要配置参数）  
 
