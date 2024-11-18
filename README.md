@@ -21,7 +21,7 @@ worker（执行端）（客户端）：可多机部署，不同worker可以处�
 
 
 
-如何使用？
+如何使用？  
 1、flowsvr（服务端）和async_deal（治理模块）部署在服务器上，开启子进程运行asyn_deal即可  
 2、worker可以多机部署  
 3、Kafka、MySQL在application.yml中配置，执行init.sql创建表结构  
