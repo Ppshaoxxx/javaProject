@@ -61,4 +61,4 @@ CREATE TABLE `t_schedule_pos`
 
 insert into t_schedule_pos(task_type, schedule_begin_pos,
                            schedule_end_pos)
-values ('lark', 1, 1);
+values ('Lark', 1, 1);

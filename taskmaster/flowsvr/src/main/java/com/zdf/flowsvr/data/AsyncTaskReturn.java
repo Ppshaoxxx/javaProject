@@ -2,9 +2,11 @@ package com.zdf.flowsvr.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor//自动生成构造函数
+@NoArgsConstructor
 public class AsyncTaskReturn {
     private String user_id; //NOT NULL DEFAULT '',
 

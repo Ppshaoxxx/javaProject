@@ -1,6 +1,7 @@
 package com.zdf.worker.boot;
 
 
+
 import com.zdf.worker.kafkaConsumer.KafkaTaskFetcherManual;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,7 @@ import com.zdf.worker.task.TaskBuilder;
 import com.zdf.worker.task.TaskRet;
 import org.springframework.stereotype.Component;
 
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -29,6 +31,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class AppLaunch implements Launch{
+
+
     private static final String kafkaIp = "192.168.57.140:9093,192.168.57.140:9094,192.168.57.140:9095";
     final TaskFlower taskFlower;//用于发送请求
 
@@ -180,6 +184,7 @@ public class AppLaunch implements Launch{
     }
 
     private List<AsyncTaskBase> getAsyncTaskBases(ObserverManager observerManager, Class<?> taskType) {
+        //KafkaConsumer<String, ReturnStatus<TaskList>> consumer = KafkaConsumerConfig.createConsumer("Lark");
 // 分布式锁的参数
         //        LockParam lockParam = new LockParam(LOCK_KEY);
         // 分布式锁
@@ -189,7 +194,7 @@ public class AppLaunch implements Launch{
             // 上锁
          //   if (redisLock.lock()) {
             // 调用http请求接口
-                //taskList = taskFlower.getTaskList(taskType, TaskStatus.PENDING.getStatus(), scheduleCfgDic.get(taskType.getSimpleName()).getSchedule_limit());
+                //TaskList = taskFlower.getTaskList(taskType, TaskStatus.PENDING.getStatus(), scheduleCfgDic.get(taskType.getSimpleName()).getSchedule_limit());
             //改为从Kafka中拉取任务
             String topic = taskType.getSimpleName(); // 例如：Lark
             //拉取Kafka中的任务

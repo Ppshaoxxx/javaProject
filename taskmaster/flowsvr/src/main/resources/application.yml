@@ -91,7 +91,7 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       # Value的序列化器类
       # 传递对象
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
     consumer:
       # 消费者所属的组ID
@@ -105,7 +105,7 @@ spring:
       # Key的反序列化器类
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       # Value的反序列化器类
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       # 每次poll()调用返回的最大消息条数
       max-poll-records: 2
       session:

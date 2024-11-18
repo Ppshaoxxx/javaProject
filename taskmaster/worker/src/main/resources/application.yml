@@ -1,2 +1,50 @@
 server:
   port: 8081
+spring:
+  kafka:
+    # Kafka集群的地址，多个地址用逗号分隔
+    bootstrap-servers: 192.168.57.140:9093,192.168.57.140:9094,192.168.57.140:9095
+
+    producer:
+      # 消息确认模式：0=不等待确认，1=等待leader确认，all=所有副本确认
+      acks: 1
+      # 发送失败时的重试次数，0表示不重试
+      retries: 0
+      # 批量发送时的批次大小（字节）
+      batch-size: 30720000 # 30MB
+      # 生产者的内存缓冲区大小（字节）
+      buffer-memory: 33554432 # 32MB
+      # Key的序列化器类
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # Value的序列化器类
+      # 传递对象
+      value-serializer: org.apache.kafka.common.serialization.StringDeserializer
+
+    consumer:
+      # 消费者所属的组ID
+      group-id: test-kafka
+      # 禁用自动提交offset，改为手动提交
+      enable-auto-commit: false
+      # 偏移量重置策略：
+      # earliest：从最早的记录开始消费
+      # latest：从最新的记录开始消费
+      auto-offset-reset: earliest
+      # Key的反序列化器类
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # Value的反序列化器类
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # 每次poll()调用返回的最大消息条数
+      max-poll-records: 2
+      session:
+        # 消费者会话超时时间，超时未发送心跳将被认为失联（毫秒）
+        timeout:
+          ms: 300000 # 5分钟
+
+    listener:
+      # 如果指定的主题不存在，是否让应用启动失败，false表示不会报错
+      missing-topics-fatal: false
+      # 消费模式：single=单条消息，batch=批量消费
+      type: single
+      # 消费确认模式：
+      # manual_immediate：手动确认消息，立即提交offset
+      ack-mode: manual_immediate
